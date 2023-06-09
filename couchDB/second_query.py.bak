@@ -1,0 +1,38 @@
+import couchdb
+import json
+#couch = couchdb.Server('http://admin:admin@localhost:5984')
+#db = couch['countries']
+# Load JSON file
+
+#with open('countries.json', errors='ignore') as json_file:
+#    data = json.load(json_file)
+
+# Upload documents to CouchDB
+#for doc in data:
+#    db.save(doc)
+
+#print("JSON file uploaded successfully.")
+
+
+map_function = '''
+function(doc) {
+  if (doc.type === 'city') {
+    emit(doc.name, doc);
+  }
+}
+''' 
+
+# Connect to CouchDB
+couch = couchdb.Server('http://admin:admin@localhost:5984')
+
+db = couch['cities']
+
+design_doc = {
+  "_id": "_design/cities",
+  "views": {
+    "by_name": {
+      "map": map_function
+    }
+  }
+}
+db.save(design_doc) 

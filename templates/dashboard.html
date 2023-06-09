@@ -35,6 +35,7 @@
             margin-top: 20px;
             padding: 20px;
         }
+		
     </style>
 </head>
 <body>
@@ -50,6 +51,6 @@
     </header>
     <h1>Welcome, {{ username }}</h1>
     <p>This is your dashboard.</p>
-    <a href="/logout">Logout</a>
+	    <img src="{{ url_for('static', filename='matrix.gif') }}" alt="GIF">
 </body>
 </html>

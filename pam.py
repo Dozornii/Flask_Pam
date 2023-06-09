@@ -6,7 +6,7 @@ import sys
 
 from couchdb import Server
 
-app = Flask(__name__)
+app = Flask(__name__,static_url_path='/static', static_folder='static')
 app.secret_key = 'your-secret-key'
 
 # Connect to CouchDB
@@ -29,6 +29,10 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
+    print(request.remote_addr)
+    if(check_localhost(request)==False):
+        error = 'Only localhost permitted.'
+        return render_template('login.html', error=error)
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -69,6 +73,9 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     error = None
+    if(check_localhost(request)==False):
+        error = 'Only localhost permitted.'
+        return render_template('register.html', error=error)
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -112,7 +119,15 @@ def check_password(password):
 
 @app.route('/dashboard')
 def dashboard():
+    if(check_localhost(request)==False):
+        error = 'Only localhost permitted.'
+        return render_template('login.html', error=error)
     if 'username' in session:
+        current_time = datetime.datetime.now().time()
+        if not is_within_allowed_time_range(current_time):
+            session.pop('username', None)
+            return redirect(url_for('login'))
+
         return render_template('dashboard.html', username=session['username'])
     else:
         return redirect(url_for('login'))
@@ -152,12 +167,18 @@ def read_allowed_users():
 
 def is_within_allowed_time_range(current_time):
     start_time = datetime.time(9, 0)  # 17:00
-    end_time = datetime.time(19, 0)    # 19:00
+    end_time = datetime.time(17, 26)    # 19:00
 
     if start_time <= current_time <= end_time:
         return True
     return False
 
+def check_localhost(request):
+    user_ip = request.remote_addr
+    if user_ip == '127.0.0.1' or user_ip == 'localhost':
+        return True
+    else:
+        return False
 
 def is_user_blocked(username):
     # Check if the user is currently blocked by comparing the current time with the block end time
